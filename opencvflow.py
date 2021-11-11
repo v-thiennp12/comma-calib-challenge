@@ -63,7 +63,7 @@ while(ret):
     mag_fil = np.nonzero(hsv[...,2] > mag_thd)
     for ij in range(len(mag_fil[0])):
         # print(mag_fil[0][ij], ' ', mag_fil[1][ij])
-        length =  4*mag[mag_fil[0][ij], mag_fil[1][ij]]
+        length =  100*mag[mag_fil[0][ij], mag_fil[1][ij]]
         angle  =  ang[mag_fil[0][ij], mag_fil[1][ij]]
         
         start_pt = (mag_fil[1][ij], mag_fil[0][ij])
