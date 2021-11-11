@@ -14,7 +14,7 @@ from matplotlib.colors import hsv_to_rgb
 tmp_filename  = uuid.uuid1().hex + '.mp4'
 tmp_filename2 = uuid.uuid1().hex + '.mp4'
 
-cap = cv.VideoCapture(cv.samples.findFile("4.hevc"))
+cap = cv.VideoCapture(cv.samples.findFile("/labeled/4.hevc"))
 ret, frame1 = cap.read()
 ret, frame2 = cap.read()
 
