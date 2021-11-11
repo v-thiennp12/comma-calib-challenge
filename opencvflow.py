@@ -21,7 +21,7 @@ ret, frame2 = cap.read()
 # print(frame1.type)
 
 size        = (frame1.shape[1], frame1.shape[0])
-print(size)
+# print(size)
 videoWriter = cv.VideoWriter(tmp_filename, cv.VideoWriter_fourcc(*'mp4v'), 20, size)
 videoWriter2 = cv.VideoWriter(tmp_filename2, cv.VideoWriter_fourcc(*'mp4v'), 20, size)
 
@@ -63,12 +63,16 @@ while(ret):
     mag_fil = np.nonzero(hsv[...,2] > mag_thd)
     for ij in range(len(mag_fil[0])):
         # print(mag_fil[0][ij], ' ', mag_fil[1][ij])
-        length =  100*mag[mag_fil[0][ij], mag_fil[1][ij]]
+        length =  20*mag[mag_fil[0][ij], mag_fil[1][ij]]
         angle  =  ang[mag_fil[0][ij], mag_fil[1][ij]]
         
         start_pt = (mag_fil[1][ij], mag_fil[0][ij])
-        end_pt   = (int(mag_fil[1][ij] + length*np.cos(angle)), int(mag_fil[0][ij] + length*np.sin(angle)))
+        #outward vanishing center
+        # end_pt   = (int(mag_fil[1][ij] + length*np.cos(angle)), int(mag_fil[0][ij] + length*np.sin(angle)))
         
+        #torward vanishing center
+        end_pt   = (int(mag_fil[1][ij] - length*np.cos(angle)), int(mag_fil[0][ij] - length*np.sin(angle)))
+
         # print(start_pt)
         # print(end_pt)
         
@@ -93,6 +97,9 @@ while(ret):
     ret, frame2 = cap.read()
     prvs = next
     
+print('print(flow.shape)', flow.shape)
+print('mag.shape', mag.shape)
+
 videoWriter.release()
 videoWriter2.release()
 cv.waitKey(1000)
