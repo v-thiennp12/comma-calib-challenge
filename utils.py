@@ -3,12 +3,12 @@
 
 import os, uuid
 import numpy as np
-import cv2 as cv
+import cv2
 import pandas as pd
 import matplotlib.image as mpimg
 from matplotlib.colors import hsv_to_rgb
 
-IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNELS = 66, 200, 3
+IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNELS = 874, 1164, 3
 INPUT_SHAPE     = (IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNELS)
 
 def video2frame(video_file, output_path, image_shape):
@@ -18,37 +18,37 @@ def video2frame(video_file, output_path, image_shape):
     frame_dir           = path[-1]
     os.makedirs(os.path.join(output_path, dir_path, frame_dir), exist_ok=True)
 
-    cap                 = cv.VideoCapture(video_file)
+    cap                 = cv2.VideoCapture(video_file)
     ret, frame          = cap.read()    
     
     count               = 0  
     while(ret):
         frame_name      = os.path.join(output_path, dir_path, frame_dir, str(count) + ".png")        
-        cv.imwrite(frame_name, frame)
+        cv2.imwrite(frame_name, frame)
         ret, frame      = cap.read()
         count           += 1
         # print(frame_name) # print(count, ret, frame)
     cap.release()
     
-def load_csv(data_dir):
+def load_csv(data_dir, csv_file):
     """
     Load training data and split it into training and validation set
+        # X_train, X_valid, y_train, y_valid = train_test_split(X, y, test_size=args.test_size, random_state=0)
     """
-    data_df = pd.read_csv(os.path.join(data_dir, '0.csv'))
+    data_df = pd.read_csv(os.path.join(data_dir, csv_file))
 
     x = data_df['image'].values
-    y = data_df[['pitch', 'yaw']].values
+    y = data_df[['pitch', 'yaw']].values    
 
-    # X_train, X_valid, y_train, y_valid = train_test_split(X, y, test_size=args.test_size, random_state=0)
-
-    return x, y #X_train, X_valid #, y_train, y_valid    
+    return x, y
     
 def load_image(data_dir, image_file):
     """
     Load RGB images from a file
     """
+    # print('data_dir', data_dir)
+    print(os.path.join(data_dir.strip(), image_file.strip()))
     return mpimg.imread(os.path.join(data_dir, image_file.strip()))
-
 
 def crop(image):
     """
@@ -56,20 +56,17 @@ def crop(image):
     """
     return image[60:-25, :, :] # remove the sky and the car front
 
-
 def resize(image):
     """
     Resize the image to the input shape used by the network model
     """
     return cv2.resize(image, (IMAGE_WIDTH, IMAGE_HEIGHT), cv2.INTER_AREA)
 
-
 def rgb2yuv(image):
     """
     Convert the image from RGB to YUV (This is what the NVIDIA model does)
     """
     return cv2.cvtColor(image, cv2.COLOR_RGB2YUV)
-
 
 def preprocess(image):
     """
@@ -80,42 +77,16 @@ def preprocess(image):
     image = rgb2yuv(image)
     return image
 
-
-def choose_image(data_dir, center, left, right, steering_angle):
+def random_flip(image, pitch_angle):
     """
-    Randomly choose an image from the center, left or right, and adjust
-    the steering angle.
+    Randomly flipt the image left <-> right, and adjust the pitch_angle angle.
     """
-    choice = np.random.choice(3)
-    if choice == 0:
-        return load_image(data_dir, left), steering_angle + 0.2
-    elif choice == 1:
-        return load_image(data_dir, right), steering_angle - 0.2
-    return load_image(data_dir, center), steering_angle
-
-
-def random_flip(image, steering_angle):
-    """
-    Randomly flipt the image left <-> right, and adjust the steering angle.
-    """
+    #pitch angle is not affected by flipped image
+    
     if np.random.rand() < 0.5:
-        image = cv2.flip(image, 1)
-        steering_angle = -steering_angle
-    return image, steering_angle
-
-
-def random_translate(image, steering_angle, range_x, range_y):
-    """
-    Randomly shift the image virtially and horizontally (translation).
-    """
-    trans_x = range_x * (np.random.rand() - 0.5)
-    trans_y = range_y * (np.random.rand() - 0.5)
-    steering_angle += trans_x * 0.002
-    trans_m = np.float32([[1, 0, trans_x], [0, 1, trans_y]])
-    height, width = image.shape[:2]
-    image = cv2.warpAffine(image, trans_m, (width, height))
-    return image, steering_angle
-
+        image       = cv2.flip(image, 1)
+        pitch_angle = pitch_angle
+    return image, pitch_angle
 
 def random_shadow(image):
     """
@@ -132,6 +103,8 @@ def random_shadow(image):
     # (ym-y1)/(xm-x1) > (y2-y1)/(x2-x1)
     # as x2 == x1 causes zero-division problem, we'll write it in the below form:
     # (ym-y1)*(x2-x1) - (y2-y1)*(xm-x1) > 0
+    
+    # print(image)
     mask = np.zeros_like(image[:, :, 1])
     mask[(ym - y1) * (x2 - x1) - (y2 - y1) * (xm - x1) > 0] = 1
 
@@ -144,7 +117,6 @@ def random_shadow(image):
     hls[:, :, 1][cond] = hls[:, :, 1][cond] * s_ratio
     return cv2.cvtColor(hls, cv2.COLOR_HLS2RGB)
 
-
 def random_brightness(image):
     """
     Randomly adjust brightness of the image.
@@ -155,40 +127,44 @@ def random_brightness(image):
     hsv[:,:,2] =  hsv[:,:,2] * ratio
     return cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB)
 
-
-def augument(data_dir, center, left, right, steering_angle, range_x=100, range_y=10):
+def augment(image, pitch_angle, range_x=100, range_y=10):
     """
-    Generate an augumented image and adjust steering angle.
+    Generate an augmented image and adjust steering angle.
     (The steering angle is associated with the center image)
     """
-    image, steering_angle = choose_image(data_dir, center, left, right, steering_angle)
-    image, steering_angle = random_flip(image, steering_angle)
-    image, steering_angle = random_translate(image, steering_angle, range_x, range_y)
-    image = random_shadow(image)
-    image = random_brightness(image)
-    return image, steering_angle
+    image, pitch_angle  = random_flip(image, pitch_angle)
+    image               = random_shadow(image)
+    image               = random_brightness(image)
+    return image, pitch_angle
 
-
-def batch_generator(data_dir, image_paths, steering_angles, batch_size, is_training):
+def batch_generator(data_dir, image_paths, angles, batch_size, is_training):
     """
     Generate training image give image paths and associated steering angles
     """
-    images = np.empty([batch_size, IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNELS])
-    steers = np.empty(batch_size)
+    # print('data_dir', data_dir)
+    images  = np.empty([batch_size, IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNELS])
+    pitches = np.empty(batch_size)
     while True:
         i = 0
+        #angles[index][0] pitch | angles[index][1] yaw
         for index in np.random.permutation(image_paths.shape[0]):
-            center, left, right = image_paths[index]
-            steering_angle = steering_angles[index]
-            # argumentation
+            # print('data_dir', data_dir)
+            image               = load_image(data_dir, image_paths[index]) 
+            pitch_angle         = angles[index][0]
+            
+            # image               = image_paths[index]
+            # pitch_angle         = angles[index][0]
+            
+            # # augmentation
             if is_training and np.random.rand() < 0.6:
-                image, steering_angle = augument(data_dir, center, left, right, steering_angle)
-            else:
-                image = load_image(data_dir, center) 
-            # add the image and steering angle to the batch
-            images[i] = preprocess(image)
-            steers[i] = steering_angle
+                image, pitch_angle = augment(image, pitch_angle)
+            # else:
+            #     image = load_image(data_dir, image)
+            
+            # add the image and pitch angle to the batch
+            images[i]   = preprocess(image)
+            pitches[i]  = pitch_angle
             i += 1
             if i == batch_size:
                 break
-        yield images, steers
+        yield images, pitches

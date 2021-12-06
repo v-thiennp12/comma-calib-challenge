@@ -14,5 +14,8 @@ import utils
 # utils.video2frame(video, output_path, 0)
 
 # read csv
-x, y = utils.load_csv('C:\opticalflow\calib_challenge-main\labeled')
-# print(x, y)
+x_train, y_train = utils.load_csv('C:\opticalflow\calib_challenge-main\labeled','0.csv')
+print(x_train, y_train)
+
+x_test, y_test = utils.load_csv('C:\opticalflow\calib_challenge-main\labeled','1.csv')
+print(x_test, y_test)
