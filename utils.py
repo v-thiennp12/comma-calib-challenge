@@ -5,13 +5,14 @@ import os, uuid
 import numpy as np
 import cv2
 import pandas as pd
+import pickle
 import matplotlib.image as mpimg
 from matplotlib.colors import hsv_to_rgb
 
-IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNELS = 874, 1164, 3
+IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNELS = 874, 1164, 6
 INPUT_SHAPE     = (IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNELS)
 
-def video2frame(video_file, output_path, image_shape):
+def video2frame(video_file, output_path, reshape):
     dir_path, file_name = os.path.split(video_file)
     path, ext           = os.path.splitext(video_file)
     
@@ -29,6 +30,42 @@ def video2frame(video_file, output_path, image_shape):
         count           += 1
         # print(frame_name) # print(count, ret, frame)
     cap.release()
+
+def video2framestack(video_file, output_path, reshape):
+    dir_path, file_name = os.path.split(video_file)
+    path, ext           = os.path.splitext(video_file)
+    
+    frame_dir           = path[-1]
+    os.makedirs(os.path.join(output_path, dir_path, frame_dir), exist_ok=True)
+
+    cap                 = cv2.VideoCapture(video_file)
+    ret, frame          = cap.read()
+    prev_frame          = frame
+    
+    count               = 0  
+    while(ret):
+        frame_name      = os.path.join(output_path, dir_path, frame_dir, str(count) + ".tiff")
+        frame_stack     = np.concatenate((frame, prev_frame), axis=2)
+
+        with open(frame_name, "wb") as f_out:
+            pickle.dump(frame_stack, f_out)
+            
+        prev_frame      = frame
+        ret, frame      = cap.read()
+        count           += 1
+        print(frame_name)
+        # print(count, ret)
+        print(frame_stack.shape)
+    cap.release()
+
+def load_framestack(framestack_file):
+    with open(framestack_file, "rb") as f_in:
+        frame_stack = pickle.load(f_in)        
+        # print(frame_stack.shape)
+        # cv2.imshow('__', frame_stack[...,:3])
+        # cv2.waitKey(2000)
+        # cv2.destroyAllWindows()
+    return frame_stack
     
 def load_csv(data_dir, csv_file):
     """
@@ -149,20 +186,23 @@ def batch_generator(data_dir, image_paths, angles, batch_size, is_training):
         #angles[index][0] pitch | angles[index][1] yaw
         for index in np.random.permutation(image_paths.shape[0]):
             # print('data_dir', data_dir)
-            image               = load_image(data_dir, image_paths[index]) 
+            image               = load_framestack(os.path.join(data_dir, image_paths[index]))
             pitch_angle         = angles[index][0]
+
+            # image               = load_image(data_dir, image_paths[index]) *
+            # pitch_angle         = angles[index][0] *
             
             # image               = image_paths[index]
             # pitch_angle         = angles[index][0]
             
             # # augmentation
-            if is_training and np.random.rand() < 0.6:
-                image, pitch_angle = augment(image, pitch_angle)
+            # if is_training and np.random.rand() < 0.6:*
+            #     image, pitch_angle = augment(image, pitch_angle)*
             # else:
             #     image = load_image(data_dir, image)
             
             # add the image and pitch angle to the batch
-            images[i]   = preprocess(image)
+            # images[i]   = preprocess(image)*
             pitches[i]  = pitch_angle
             i += 1
             if i == batch_size:

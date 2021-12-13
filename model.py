@@ -50,9 +50,13 @@ def build_model():
 def train_model(model, x_train, x_valid, y_train, y_valid):
     """
     Train the model
-    """
-    data_dir_train      = 'C:\\opticalflow\\calib_challenge-main\\labeled\\0_'
-    data_dir_test       = 'C:\\opticalflow\\calib_challenge-main\\labeled\\1_'
+    # """
+    # data_dir_train      = 'C:\\opticalflow\\calib_challenge-main\\labeled\\0'
+    # data_dir_test       = 'C:\\opticalflow\\calib_challenge-main\\labeled\\1'
+
+    data_dir_train      = 'labeled/0'
+    data_dir_test       = 'labeled/1'    
+
     epochs              = 10
     samples_per_epoch   = 250
     batch_size          = 40
@@ -80,11 +84,13 @@ if __name__ == '__main__':
     #build nvidia-pilotnet model
     model               = build_model()
     
-    # read csv
-    x_train, y_train    = utils.load_csv('C:\\opticalflow\\calib_challenge-main\\labeled','0.csv')
-    # print(x_train, y_train)    
-    x_test, y_test      = utils.load_csv('C:\opticalflow\calib_challenge-main\labeled','1.csv')
+    # # read csv
+    # x_train, y_train    = utils.load_csv('C:\\opticalflow\\calib_challenge-main\\labeled','0_tiff.csv')     
+    # x_test, y_test      = utils.load_csv('C:\\opticalflow\\calib_challenge-main\\labeled','1_tiff.csv')
+    # print(x_train, y_train)   
     # print(x_test, y_test)
+    x_train, y_train    = utils.load_csv('labeled','0_tiff.csv')     
+    x_test, y_test      = utils.load_csv('labeled','1_tiff.csv')    
     
     #
     train_model(model, x_train, x_test, y_train, y_test)
