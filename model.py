@@ -29,7 +29,7 @@ def build_model():
     # INPUT_SHAPE = (IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNELS)
     keep_prob   = 0.75
 
-    model = Sequential()
+    model       = Sequential()
     model.add(Lambda(lambda x: x/127.5-1.0, input_shape=INPUT_SHAPE))
     model.add(Conv2D(24, kernel_size=(5,5), strides=(2,2), activation='elu'))
     model.add(Conv2D(36, kernel_size=(5,5), strides=(2,2), activation='elu'))
@@ -94,5 +94,3 @@ if __name__ == '__main__':
     
     #
     train_model(model, x_train, x_test, y_train, y_test)
-    
-    

@@ -10,7 +10,7 @@ import matplotlib.image as mpimg
 from matplotlib.colors import hsv_to_rgb
 
 IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNELS = 874, 1164, 6
-INPUT_SHAPE     = (IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNELS)
+INPUT_SHAPE = (IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNELS)
 
 def video2frame(video_file, output_path, reshape):
     dir_path, file_name = os.path.split(video_file)
@@ -202,9 +202,62 @@ def batch_generator(data_dir, image_paths, angles, batch_size, is_training):
             #     image = load_image(data_dir, image)
             
             # add the image and pitch angle to the batch
-            # images[i]   = preprocess(image)*
+            #images[i]   = preprocess(image)
+            images[i]   = image
             pitches[i]  = pitch_angle
             i += 1
             if i == batch_size:
                 break
         yield images, pitches
+
+def batch_generator_2inputs(data_dir, image_paths, angles, batch_size, is_training):
+    """
+    Generate training image give image paths and associated steering angles
+    """
+    # print('data_dir', data_dir)
+    # images  = [[None]]*batch_size
+    # images  = list([range(batch_size)])
+    # print(images)
+    
+    images_a  = np.empty([batch_size, IMAGE_HEIGHT, IMAGE_WIDTH, 3])
+    images_b  = np.empty([batch_size, IMAGE_HEIGHT, IMAGE_WIDTH, 3])
+    pitches   = np.empty(batch_size)
+
+    while True:
+        i = 0
+        #angles[index][0] pitch | angles[index][1] yaw
+        for index in np.random.permutation(image_paths.shape[0]):
+            # print('data_dir', data_dir)
+            image               = load_framestack(os.path.join(data_dir, image_paths[index]))
+            pitch_angle         = angles[index][0]
+
+            # image               = load_image(data_dir, image_paths[index]) *
+            # pitch_angle         = angles[index][0] *
+            
+            # image               = image_paths[index]
+            # pitch_angle         = angles[index][0]
+            
+            # # augmentation
+            # if is_training and np.random.rand() < 0.6:*
+            #     image, pitch_angle = augment(image, pitch_angle)*
+            # else:
+            #     image = load_image(data_dir, image)
+            
+            # add the image and pitch angle to the batch
+            # images[i]   = preprocess(image)
+            # images[i]   = [image[...,:3], image[...,3:]]
+            # images[i]   = image
+
+            images_a[i]    = image[...,:3]
+            images_b[i]    = image[...,3:]
+
+            # print(images_a)
+            # print(images_b)
+
+            pitches[i]  = pitch_angle
+            i += 1
+            if i == batch_size:
+                break
+        # print(images_a.shape)
+        # print(pitches.shape)
+        yield [images_a, images_b], pitches        
