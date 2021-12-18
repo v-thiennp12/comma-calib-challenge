@@ -55,18 +55,18 @@ def build_model():
     plot_model(model, "./model.png", show_shapes=True)    
     return model
 
-def train_model(model, x_train, x_valid, y_train, y_valid):
+def train_model(model, data_dir_train, data_dir_test, x_train, x_valid, y_train, y_valid):
     """
     Train the model
     # """
     # data_dir_train      = 'C:\\opticalflow\\calib_challenge-main\\labeled\\0'
     # data_dir_test       = 'C:\\opticalflow\\calib_challenge-main\\labeled\\1'
 
-    data_dir_train      = 'labeled/0'
-    data_dir_test       = 'labeled/1'    
+    # data_dir_train      = 'labeled/0'
+    # data_dir_test       = 'labeled/1'    
 
-    epochs              = 10
-    samples_per_epoch   = 1000 #250
+    epochs              = 15
+    samples_per_epoch   = 250 #1000
     batch_size          = 15   #40
     learning_rate       = 1.0E-4
     
@@ -79,13 +79,13 @@ def train_model(model, x_train, x_valid, y_train, y_valid):
     model.compile(loss='mean_squared_error', optimizer='Adam')
 
     model.fit_generator(batch_generator_2inputs(data_dir_train, x_train, y_train, batch_size, True),
-            samples_per_epoch,
-            epochs,
-            max_queue_size=1,
-            validation_data=batch_generator(data_dir_test, x_valid, y_valid, batch_size, False),
-            validation_steps=len(x_valid),
-            callbacks=[checkpoint],
-            verbose=1)
+                samples_per_epoch,
+                epochs,
+                max_queue_size=1,
+                validation_data=batch_generator_2inputs(data_dir_test, x_valid, y_valid, batch_size, False),
+                validation_steps=len(x_valid),
+                callbacks=[checkpoint],
+                verbose=1)
 
 if __name__ == '__main__':
     
@@ -97,8 +97,27 @@ if __name__ == '__main__':
     # x_test, y_test      = utils.load_csv('C:\\opticalflow\\calib_challenge-main\\labeled','1_tiff.csv')
     # print(x_train, y_train)   
     # print(x_test, y_test)
-    x_train, y_train    = utils.load_csv('labeled','0_tiff.csv')     
-    x_test, y_test      = utils.load_csv('labeled','1_tiff.csv')    
     
-    #
-    train_model(model, x_train, x_test, y_train, y_test)
+    data_dir_train      = 'labeled/0'
+    data_dir_test       = 'labeled/1'    
+    x_train, y_train    = utils.load_csv('labeled','0_tiff.csv')     
+    x_test, y_test      = utils.load_csv('labeled','1_tiff.csv')
+    train_model(model, data_dir_train, data_dir_test, x_train, x_test, y_train, y_test)
+
+    data_dir_train      = 'labeled/2'
+    data_dir_test       = 'labeled/1'
+    x_train, y_train    = utils.load_csv('labeled','2_tiff.csv')     
+    x_test, y_test      = utils.load_csv('labeled','1_tiff.csv')
+    train_model(model, data_dir_train, data_dir_test, x_train, x_test, y_train, y_test)
+
+    data_dir_train      = 'labeled/3'
+    data_dir_test       = 'labeled/1' 
+    x_train, y_train    = utils.load_csv('labeled','3_tiff.csv')     
+    x_test, y_test      = utils.load_csv('labeled','1_tiff.csv')
+    train_model(model, data_dir_train, data_dir_test, x_train, x_test, y_train, y_test)
+
+    data_dir_train      = 'labeled/4'
+    data_dir_test       = 'labeled/1' 
+    x_train, y_train    = utils.load_csv('labeled','4_tiff.csv')     
+    x_test, y_test      = utils.load_csv('labeled','1_tiff.csv')
+    train_model(model, data_dir_train, data_dir_test, x_train, x_test, y_train, y_test)

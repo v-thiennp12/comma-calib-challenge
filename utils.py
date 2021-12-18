@@ -72,12 +72,27 @@ def load_csv(data_dir, csv_file):
     Load training data and split it into training and validation set
         # X_train, X_valid, y_train, y_valid = train_test_split(X, y, test_size=args.test_size, random_state=0)
     """
-    data_df = pd.read_csv(os.path.join(data_dir, csv_file))
+    data_df = pd.read_csv(os.path.join(data_dir, csv_file), keep_default_na=True)
 
-    x = data_df['image'].values
-    y = data_df[['pitch', 'yaw']].values    
+    x_raw = data_df['image'].values
+    y_raw = data_df[['pitch', 'yaw']].values    
 
-    return x, y
+    x = []
+    y = []
+    # print(type(y_raw))
+    # print(type(x_raw))
+    # print(y_raw.shape)
+    # print(x_raw.shape)
+    # print(type(y_raw[0]))
+    # print(type(x_raw[0]))
+    for ij in range(max(y_raw.shape[0], x_raw.shape[0])):
+        # print(y_raw[ij])
+        # print(x_raw[ij])
+        if not(np.isnan(y_raw[ij, 0]) or np.isnan(y_raw[ij, 1])):
+            x.append(x_raw[ij])
+            y.append(y_raw[ij])
+
+    return np.array(x), np.array(y)
     
 def load_image(data_dir, image_file):
     """
@@ -260,4 +275,4 @@ def batch_generator_2inputs(data_dir, image_paths, angles, batch_size, is_traini
                 break
         # print(images_a.shape)
         # print(pitches.shape)
-        yield [images_a, images_b], pitches        
+        yield [images_a, images_b], pitches

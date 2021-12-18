@@ -49,3 +49,16 @@ import utils
 
 # x_test, y_test = utils.load_csv('C:\opticalflow\calib_challenge-main\labeled','1.csv')
 # print(x_test, y_test)
+
+# x_train, y_train    = utils.load_csv('labeled','2_tiff.csv')     
+# x_test, y_test      = utils.load_csv('labeled','1_tiff.csv')
+
+# print(y_train.shape)
+# print(x_test.shape)
+
+# import numpy as np
+# # for ij in range(y_train.shape[0]):
+#     # print(y_train[ij])
+#     # print(x_train[ij])
+#     # if ((np.isnan(y_train[ij][0])) or (np.isnan(y_train[ij][1]))):
+#     #     print(y_train[ij])
