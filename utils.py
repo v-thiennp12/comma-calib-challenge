@@ -58,6 +58,39 @@ def video2framestack(video_file, output_path, reshape):
         print(frame_stack.shape)
     cap.release()
 
+def video2HSXframestack(video_file, output_path, reshape):
+    dir_path, file_name = os.path.split(video_file)
+    path, ext           = os.path.splitext(video_file)
+    
+    frame_dir           = path[-1]
+    os.makedirs(os.path.join(output_path, dir_path, frame_dir), exist_ok=True)
+
+    cap                 = cv2.VideoCapture(video_file)
+    ret, frame          = cap.read()
+    if (ret):
+        frame           = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
+        frame           = frame[...,:2]
+    prev_frame          = frame
+    
+    count               = 0
+    while(ret):
+        frame_name      = os.path.join(output_path, dir_path, frame_dir, str(count) + ".tiff")
+        frame_stack     = np.concatenate((frame, prev_frame), axis=2)
+
+        with open(frame_name, "wb") as f_out:
+            pickle.dump(frame_stack, f_out)
+            
+        prev_frame      = frame
+        ret, frame      = cap.read()
+        if (ret):
+            frame       = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
+            frame       = frame[...,:2]
+        count           += 1
+        print(frame_name)
+        # print(count, ret)
+        print(frame_stack.shape)
+    cap.release()    
+
 def load_framestack(framestack_file):
     with open(framestack_file, "rb") as f_in:
         frame_stack = pickle.load(f_in)        
