@@ -258,7 +258,7 @@ def batch_generator(data_dir, image_paths, angles, batch_size, is_training):
                 break
         yield images, pitches
 
-def batch_generator_2inputs(data_dir, image_paths, angles, batch_size, is_training):
+def batch_generator_2inputs(data_dir, image_paths, angles, batch_size, is_training, eval_epoch=50):
     """
     Generate training image give image paths and associated steering angles
     """
@@ -271,7 +271,9 @@ def batch_generator_2inputs(data_dir, image_paths, angles, batch_size, is_traini
     images_b  = np.empty([batch_size, IMAGE_HEIGHT, IMAGE_WIDTH, 3])
     pitches   = np.empty(batch_size)
 
-    while True:
+    stop      = False
+    j         = 0
+    while ((True) and not(stop)):
         i = 0
         #angles[index][0] pitch | angles[index][1] yaw
         for index in np.random.permutation(image_paths.shape[0]):
@@ -305,7 +307,10 @@ def batch_generator_2inputs(data_dir, image_paths, angles, batch_size, is_traini
             pitches[i]  = pitch_angle
             i += 1
             if i == batch_size:
+                if (not(is_training) and (j >= eval_epoch)):
+                    stop = True
                 break
         # print(images_a.shape)
         # print(pitches.shape)
+        j += 1
         yield [images_a, images_b], pitches
