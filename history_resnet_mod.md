@@ -1,24 +1,23 @@
-#tensorflow and keras
-import tensorflow as tf
-import tensorflow.keras as keras
-from tensorflow.keras.utils import plot_model
-from keras import regularizers, activations
-from keras.models import Sequential, Model
-from keras.layers import Input, Flatten, Dense, Dropout, BatchNormalization
-from keras.layers import Conv2D, MaxPooling2D, AveragePooling2D, GlobalAveragePooling2D, ZeroPadding2D, Concatenate
-from keras.layers import Lambda, Activation
-from keras.callbacks import ModelCheckpoint
-from keras.preprocessing.image import ImageDataGenerator
-print ("TensorFlow version: " + tf.__version__)
-
-#utils
-import numpy as np
-import cv2 as cv
-import uuid
-from matplotlib.colors import hsv_to_rgb
-from utils import IMAGE_HEIGHT, IMAGE_WIDTH, INPUT_SHAPE, batch_generator
-from utils import  batch_generator_2inputs, batch_generator_2inputs_valid, batch_generator_2inputs_eval
-import utils
+51/51 [==============================] - 18s 298ms/step - loss: 6.8506e-04
+labeled/4
+['loss']
+0.0006850555073469877
+51/51 [==============================] - 21s 406ms/step - loss: 8.1502e-04
+labeled/3
+['loss']
+0.0008150230278261006
+51/51 [==============================] - 20s 394ms/step - loss: 1.6702e-04
+labeled/2
+['loss']
+0.00016701729327905923
+51/51 [==============================] - 21s 421ms/step - loss: 2.0772e-04
+labeled/1
+['loss']
+0.0002077200188068673
+51/51 [==============================] - 21s 418ms/step - loss: 3.0152e-04
+labeled/0
+['loss']
+0.00030151536338962615
 
 def Residual(layer_in, filters, stride):
     # forward path
@@ -107,7 +106,7 @@ def build_model():
 
     ###
     #concat 2 branches a&b
-    out_concat          = Concatenate(axis=1)([layer_a, layer_b])
+    out_concat      = Concatenate(axis=1)([layer_a, layer_b])
 
     #resnet-34
         #1st stage Conv2D 7x7 + Normalization + MaxPool 3x3
@@ -132,9 +131,9 @@ def build_model():
     dense              = Dense(1, activation='linear')(flatted)   
 
     #
-    model       = Model([in_a, in_b], dense, name="Resnet_mod_2_regression")
+    model       = Model([in_a, in_b], dense, name="Resnet_mod_regression")
     model.summary()
-    plot_model(model, "./Resnet_mod_2_regression.png", show_shapes=True)    
+    plot_model(model, "./Resnet_mod_regression.png", show_shapes=True)    
     return model
 
 def train_model(model, data_dir_train, data_dir_test, x_train, x_valid, y_train, y_valid):
@@ -142,12 +141,12 @@ def train_model(model, data_dir_train, data_dir_test, x_train, x_valid, y_train,
     Train the model
     # """
 
-    epochs              = 30
+    epochs              = 15
     samples_per_epoch   = 250  #1000
     batch_size          = 15   #40
     learning_rate       = 1.0E-5
     
-    checkpoint = ModelCheckpoint('model-resnet-mod-2-{epoch:03d}.h5',
+    checkpoint = ModelCheckpoint('model-resnet-mod-{epoch:03d}.h5',
                                  monitor='val_loss',
                                  verbose=0,
                                  save_best_only=True,
@@ -159,8 +158,8 @@ def train_model(model, data_dir_train, data_dir_test, x_train, x_valid, y_train,
                 samples_per_epoch,
                 epochs,
                 max_queue_size=1,
-                validation_data=batch_generator_2inputs(data_dir_train, x_train, y_train, batch_size, False),
-                validation_steps=samples_per_epoch, #len(x_valid),
+                validation_data=batch_generator_2inputs(data_dir_test, x_valid, y_valid, batch_size, False),
+                validation_steps=len(x_valid),
                 callbacks=[checkpoint],
                 verbose=1)
 
@@ -170,31 +169,31 @@ if __name__ == '__main__':
     model               = build_model()
     
     data_dir_train      = 'labeled/0'
-    data_dir_test       = 'labeled/4'    
+    data_dir_test       = 'labeled/1'    
     x_train, y_train    = utils.load_csv('labeled','0_tiff.csv')     
-    x_test, y_test      = utils.load_csv('labeled','4_tiff.csv')
+    x_test, y_test      = utils.load_csv('labeled','1_tiff.csv')
     train_model(model, data_dir_train, data_dir_test, x_train, x_test, y_train, y_test)
 
     data_dir_train      = 'labeled/2'
-    data_dir_test       = 'labeled/4'
+    data_dir_test       = 'labeled/1'
     x_train, y_train    = utils.load_csv('labeled','2_tiff.csv')     
-    x_test, y_test      = utils.load_csv('labeled','4_tiff.csv')
+    x_test, y_test      = utils.load_csv('labeled','1_tiff.csv')
     train_model(model, data_dir_train, data_dir_test, x_train, x_test, y_train, y_test)
 
     data_dir_train      = 'labeled/3'
-    data_dir_test       = 'labeled/4' 
+    data_dir_test       = 'labeled/1' 
     x_train, y_train    = utils.load_csv('labeled','3_tiff.csv')     
-    x_test, y_test      = utils.load_csv('labeled','4_tiff.csv')
+    x_test, y_test      = utils.load_csv('labeled','1_tiff.csv')
     train_model(model, data_dir_train, data_dir_test, x_train, x_test, y_train, y_test)
 
-    # data_dir_train      = 'labeled/4'
-    # data_dir_test       = 'labeled/1' 
-    # x_train, y_train    = utils.load_csv('labeled','4_tiff.csv')     
-    # x_test, y_test      = utils.load_csv('labeled','1_tiff.csv')
-    # train_model(model, data_dir_train, data_dir_test, x_train, x_test, y_train, y_test)
+    data_dir_train      = 'labeled/4'
+    data_dir_test       = 'labeled/1' 
+    x_train, y_train    = utils.load_csv('labeled','4_tiff.csv')     
+    x_test, y_test      = utils.load_csv('labeled','1_tiff.csv')
+    train_model(model, data_dir_train, data_dir_test, x_train, x_test, y_train, y_test)
 
     data_dir_train      = 'labeled/1'
-    data_dir_test       = 'labeled/4' 
+    data_dir_test       = 'labeled/1' 
     x_train, y_train    = utils.load_csv('labeled','1_tiff.csv')     
-    x_test, y_test      = utils.load_csv('labeled','4_tiff.csv')
+    x_test, y_test      = utils.load_csv('labeled','1_tiff.csv')
     train_model(model, data_dir_train, data_dir_test, x_train, x_test, y_train, y_test)

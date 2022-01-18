@@ -38,6 +38,29 @@ import utils
 # utils.video2framestack(video, output_path, 0)
 
 ####
+# extract and stack 2 consecutive frames from video
+# current frame and previous are stacked together
+video = 'unlabeled/5.hevc'
+output_path = ''
+utils.video2framestack(video, output_path, 0)
+
+video = 'unlabeled/6.hevc'
+output_path = ''
+utils.video2framestack(video, output_path, 0)
+
+video = 'unlabeled/7.hevc'
+output_path = ''
+utils.video2framestack(video, output_path, 0)
+
+video = 'unlabeled/8.hevc'
+output_path = ''
+utils.video2framestack(video, output_path, 0)
+
+video = 'unlabeled/9.hevc'
+output_path = ''
+utils.video2framestack(video, output_path, 0)
+
+####
 #load frame
 # frame = 'labeled/2/0.tiff'
 # utils.load_framestack(frame)
