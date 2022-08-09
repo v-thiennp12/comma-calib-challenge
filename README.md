@@ -1,51 +1,46 @@
-Welcome to the comma.ai Calibration Challenge!
-======
+# comma.ai calibration challenge 
+This repos is folked from https://github.com/commaai/calib_challenge  
 
-Your goal is to predict the direction of travel (in camera frame) from provided dashcam video.
-
-- This repo provides 10 videos. Every video is 1min long and 20 fps.
-- 5 videos are labeled with a 2D array describing the direction of travel at every frame of the video
-  with a pitch and yaw angle in radians.
-- 5 videos are unlabeled. It is your task to generate the labels for them.
-- The example labels are generated using a Neural Network, and the labels were confirmed with a SLAM algorithm.
-- You can estimate the focal length to be 910 pixels.
-
-
-![picture](https://user-images.githubusercontent.com/6804392/116619874-e78a8180-a8f5-11eb-93e3-c9c852726db8.png)
-
-Context
+![picture](images/116619874-e78a8180-a8f5-11eb-93e3-c9c852726db8.png)  
+source : comma.ai
 ------
-The devices that run [openpilot](https://github.com/commaai/openpilot/) are not mounted perfectly. The camera
-is not exactly aligned to the vehicle. There is some pitch and yaw angle between the camera of the device and
-the vehicle, which can vary between installations. Estimating these angles is essential for accurate control
-of the vehicle. The best way to start estimating these values is to predict the direction of motion in camera
-frame. More info  can be found in [this readme](https://github.com/commaai/openpilot/tree/master/common/transformations).
 
-Deliverable
+
+# Context
+------
+
+While inferring from images/video feeding, deep neural network can give us information in image-coordinates which is needed to convert into real-world coordinates for autonomous driving stack.  
+(this conversion can be however explicitly by geometric calculations or by deep neural net also)  
+To refer image-coordinates to real-world coordinates, we need two kinds of information of the camera :  
+
+	[x] intrinsic information  
+		which is related to camera lens's focal length and sensor/lens installations  
+		
+	[x] extrinsic information
+		which is related to camera installation in real-world coordinates (linear position [x y z], angular orientation [yaw pitch roll]).  
+		*camera extrinsic information is subjected to perpetual changes because of camera-vehicle linking (camera position vs vehicle) and vehicle-ground linking (vehicle vs real-world).  
+
+Our goal is to predict a part of extrinsic information [pitch and yaw angle in radians] from provided dashcam video which is in ideal condition can correct pre-calibrated extrinsic information.  
+
 -----
+# Approach
+ 
+	## classical optical flow
+	https://docs.opencv.org/3.4/d4/dee/tutorial_optical_flow.html
+	[cv.calcOpticalFlowFarneback]  
+	by comparing detected feature-points between two consecutive image frames, we can estimate the optical flow vector-field at each pixel in ideal  .
+	from the optical-flow vector-field we can estimate yaw/pitch/roll angles and linear translations x/y/z in camera coordinates.  
+	<img src="images/d216135d42cd11ec926fa497b1b39748.gif">  
+	as just simple ! but in reality, optical flow can be very noisy and calculation from optical-flow field is also complicated.  
+	
+	## deeplearning
+	Taking the idea of optical flow calculation, we can inject two consecutive frames into a deep neural network that encode/decode/compare information at each pixel to then give a direct output of yaw and pitch angle of the camera at instant t.  
+	Example :  
+	<img src="images/model.png">  
+	In fact, I used a model architecture inspired from resnet-18 to get converged training.  
+	Epoch 30/30
+	250/250 [==============================] - 195s 781ms/step - loss: 5.1514e-06 - val_loss: 7.0098e-04
+	
+	<img src="images/Resnet_mod_2_regression.png">  
+	
 
-Your deliverable is the 5 labels called 5.txt to 9.txt. These labels should be a 2D array that contains
-the pitch and yaw angles of the direction of travel (in camera frame) of every frame of the respective videos.
-Zip them up and e-mail it to givemeajob@comma.ai.
-
-
-Evaluation
------
-
-We will evaluate your mean squared error against our ground truth labels. Errors for frames where the car
-speed is less than 4m/s will be ignored. Those are also labeled as NaN in the example labels.
-
-This repo includes an eval script that will give an error score (lower is better). You can use it to test your
-solutions against the labeled examples. We will use this script to evaluate your solution. 
-
-
-Hints
-------
-- Keep the goal and evaluation script in mind, creative solutions are allowed.
-- Look at plots of your solutions before submitting.
-- The dataset is tiny, use caution if using ML.
-
-
-<s> $500 Prize </s> CLAIMED
-------
-The first submission that scores an error under 25% on the unlabeled set, will receive a $500 prize.
