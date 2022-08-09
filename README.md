@@ -30,17 +30,17 @@ Our goal is to predict a part of extrinsic information [pitch and yaw angle in r
 	[cv.calcOpticalFlowFarneback]  
 	by comparing detected feature-points between two consecutive image frames, we can estimate the optical flow vector-field at each pixel in ideal  .
 	from the optical-flow vector-field we can estimate yaw/pitch/roll angles and linear translations x/y/z in camera coordinates.  
-	<img src="images/d216135d42cd11ec926fa497b1b39748.gif">  
 	as just simple ! but in reality, optical flow can be very noisy and calculation from optical-flow field is also complicated.  
-	
+
+<img src="images/d216135d42cd11ec926fa497b1b39748.gif">  
+
 	## deeplearning
 	Taking the idea of optical flow calculation, we can inject two consecutive frames into a deep neural network that encode/decode/compare information at each pixel to then give a direct output of yaw and pitch angle of the camera at instant t.  
-	Example :  
-	<img src="images/model.png">  
 	In fact, I used a model architecture inspired from resnet-18 to get converged training.  
 	Epoch 30/30
 	250/250 [==============================] - 195s 781ms/step - loss: 5.1514e-06 - val_loss: 7.0098e-04
 	
-	<img src="images/Resnet_mod_2_regression.png">  
+<img src="images/model.png"> 
+<img src="images/Resnet_mod_2_regression.png">  
 	
 
